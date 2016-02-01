@@ -1,6 +1,4 @@
-src/**/*.js
-src/**/*.map
-test/**/*.js
-test/**/*.map
+dist
 node_modules
 typings
+.vscode/

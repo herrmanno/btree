@@ -33,12 +33,18 @@ describe("BTree", () => {
     });
     
     it("should insert numbers", (done) => {
-        (async function i() {
-            for(var n of numbers) {
-                await t.insert(n);
+        function insert(i: number) {
+            if(i >= numbers.length) {
+                done();
+                return;
             }
-            done();
-        })();
+            else {
+                t.insert(numbers[i])
+                .then(() => insert(i+1));
+            }
+        }
+        
+        insert(0);
     })
     
     it("should find random inserted number", (done) => {

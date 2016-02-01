@@ -1,5 +1,7 @@
 import {BTree} from "./btree"
 
+export enum STATE { DEFAULT, NEW, CHANGED }
+
 export class BNode<T> {
     
     private m: number;
@@ -7,15 +9,21 @@ export class BNode<T> {
     private children: Array<BNode<T>> = [];
     protected parent: BNode<T>;
     private tree: BTree<T>;
+    public uuid: string;
+    public state: STATE;
+    protected loaded: boolean = true;
     
     constructor(tree: BTree<T>, m = 4) {
         this.m = m;
         this.tree = tree;
+        this.uuid = this.tree.uuid();
+        this.state = STATE.NEW;
     }
     
     public insert(value: T): Promise<any> {
         this.keys.push(value);
         this.keys.sort(this.tree.compare);
+        this.state = STATE.CHANGED;
         
         if(this.isOverflown) {
             return this.overflow();       
@@ -65,7 +73,10 @@ export class BNode<T> {
                 
                 return null;
             }
-        });
+        })
+        .then(() => {
+            this.tree.removeNode(this);
+        })
         
     }
     
@@ -100,16 +111,6 @@ export class BNode<T> {
            
         }
     }
-    
-    /*
-    protected deleteRightMost(): Promise<T> {
-        return this.delete(this.keys[this.keys.length-1])
-    }
-    
-    protected deleteLeftMost(): Promise<T> {
-        return this.delete(this.keys[0])
-    }
-    */
     
     protected underflow(): Promise<any> {
         if(this.isRoot) {
@@ -302,6 +303,23 @@ export class BNode<T> {
         }
     }
     
+    public traverseLoadedNodes(cb: (n:BNode<T>)=>Promise<any>): Promise<any> {
+        return new Promise((resolve, reject) => {
+            cb(this)
+            .then(() => {
+                return this.getLoadedChildren();
+            })
+            .then(children => {
+                return Promise.all(children.map(childNode => childNode.traverseLoadedNodes(cb)));
+            })
+            .then(resolve);
+        });
+    }
+    
+    protected getLoadedChildren(): Promise<Array<BNode<T>>> {
+        return Promise.resolve(this.children.filter(child => child.loaded));
+    }
+    
     protected getChild(i: number): Promise<BNode<T>> {
         //TODO reject if !this.children[i]
         return Promise.resolve(this.children[i]);
@@ -341,6 +359,13 @@ export class BNode<T> {
     
     get isRoot(): boolean {
         return !this.parent;
+    }
+    
+    get json(): string {
+        return JSON.stringify({
+            keys: this.keys,
+            children: this.children.map(c => c.uuid)
+        });
     }
     
     public toJSON() {

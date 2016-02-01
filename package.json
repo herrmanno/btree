@@ -4,12 +4,16 @@
   "description": "",
   "main": "src/btree.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha ./test/index.js"
+    "test": "node ./node_modules/mocha/bin/mocha ./dist/test/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "mkdirp": "^0.5.1",
+    "node-uuid": "^1.4.7",
+    "uuid": "^2.0.1"
+  },
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^2.4.5"
