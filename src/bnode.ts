@@ -1,3 +1,5 @@
+import * as fs from "fs"
+import * as path from "path"
 import {BTree} from "./btree"
 
 export enum STATE { DEFAULT, NEW, CHANGED }
@@ -11,13 +13,56 @@ export class BNode<T> {
     private tree: BTree<T>;
     public uuid: string;
     public state: STATE;
-    protected loaded: boolean = true;
+    public loaded: boolean = true;
     
     constructor(tree: BTree<T>, m = 4) {
         this.m = m;
         this.tree = tree;
         this.uuid = this.tree.uuid();
         this.state = STATE.NEW;
+    }
+    
+    public load(recursive=false): Promise<BNode<T>> {
+        return new Promise((resolve, reject) => {
+            if(!this.loaded) {
+                let file = path.resolve(this.tree.dir, this.uuid);
+                fs.readFile(file, "utf-8", (err, data) => {
+                    if(err) {
+                        reject(err);
+                    }
+                    else {
+                        resolve(JSON.parse(data));
+                    }
+                })
+            }
+            else {
+                resolve(this)
+            }
+        })
+        .then((json: BNode<T>) => {
+            return this.initFromJson(json);
+        })
+        .then(node => {
+            return recursive ? Promise.all(node.children.map(childNode => childNode.load(recursive))) : null
+        })
+        .then(() => this)
+    }
+    
+    protected initFromJson(json: any): BNode<T> {
+        if(this.loaded)
+            return this;
+        
+        this.keys = json.keys;
+        this.children = json.children.map(child => {
+            let n = new BNode<T>(this.tree, this.m);
+            n.uuid = child;
+            n.loaded = false;
+            return n;
+        });
+        this.state = STATE.DEFAULT;
+        this.loaded = true;
+        
+        return this;
     }
     
     public insert(value: T): Promise<any> {
@@ -316,13 +361,15 @@ export class BNode<T> {
         });
     }
     
+    
     protected getLoadedChildren(): Promise<Array<BNode<T>>> {
         return Promise.resolve(this.children.filter(child => child.loaded));
     }
     
     protected getChild(i: number): Promise<BNode<T>> {
         //TODO reject if !this.children[i]
-        return Promise.resolve(this.children[i]);
+        //return Promise.resolve(this.children[i]);
+        return this.children[i].load();
     }
     
     protected getLastChild(): Promise<BNode<T>> {

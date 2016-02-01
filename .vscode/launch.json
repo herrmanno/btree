@@ -1,12 +1,12 @@
 {
 	"version": "0.2.0",
 	"configurations": [
-		{
+		{     
 			"name": "Launch",
 			"type": "node",
 			"request": "launch",
 			"program": "dist/test/save.js",
-			"stopOnEntry": true,
+			"stopOnEntry": false,
 			"args": [],
 			"cwd": ".",
 			"runtimeExecutable": null,

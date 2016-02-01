@@ -9,7 +9,7 @@ export type Compare<T> = (a:T, b:T) => number;
 export class BTree<T> {
     
     private m: number;
-    private dir: string;
+    public dir: string;
     public compare: Compare<T>;
     private _root: BNode<T>
     
@@ -19,11 +19,16 @@ export class BTree<T> {
         this.compare = compare;
         this.dir = dir;
         this.m = m;
-        this.root = this.createNode();
+        this.root = this.createNode();        
         
         if(this.dir) {
             mkdirp.sync(this.dir);
         }
+    }
+    
+    public loadRecursive(): Promise<BNode<T>> {
+        this.root.loaded = false;
+        return this.root.load(true);
     }
     
     public insert(value: T): Promise<any> {
