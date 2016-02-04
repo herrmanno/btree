@@ -5,12 +5,12 @@ import * as fs from "fs"
 import * as path from "path"
 import * as uuid from "node-uuid"
 
-export abstract class BaseTree<N extends INode<T>, T> implements ITree<T, N> {
+export abstract class BaseTree<T, N extends INode<T>> implements ITree<T, N> {
     
     /**
      * the minimal number of children of a node (also namded 't')
      */
-    private m: number;
+    protected m: number;
     
     /**
      * the directory where the tree saves its files
@@ -161,7 +161,7 @@ export abstract class BaseTree<N extends INode<T>, T> implements ITree<T, N> {
      * Indicates that a given node should be delete from disk soon.
      * @param node the node to remove
      */
-    public abstract removeNode(node: INode<T>): void;
+    public abstract removeNode(node: N): void;
     
     /**
      * deletes the for removing labeled nodes (@see deleteNodeFromDisk) from disk

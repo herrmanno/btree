@@ -4,6 +4,9 @@ export type CompareNodes<T> = (a:T, b:T) => number;
 
 export interface ITree<T, N extends INode<T>> {
     
+    /**
+     * the root node
+     */
     root: N;
     
     /**
@@ -16,6 +19,9 @@ export interface ITree<T, N extends INode<T>> {
      */
     compare: CompareNodes<T>;
     
+    /**
+     * insert a given value into the tree
+     */
     insert(value: T): Promise<any>;
     
     delete(value: T): Promise<any>;

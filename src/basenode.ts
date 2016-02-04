@@ -17,7 +17,7 @@ export abstract class BaseNode<T> implements INode<T> {
     public loaded: boolean;
     protected keys: Array<T> = [];
     protected children: Array<this> = [];
-    //protected parent: this = null;
+    protected parent: this = null;
     protected tree: ITree<T, this>;
     
     /*
@@ -163,8 +163,6 @@ export abstract class BaseNode<T> implements INode<T> {
     protected abstract initFromJson(json: this): this;
     
     protected abstract getIndex(): number;
-    
-    protected abstract getParent(): Promise<this>;
     
     protected abstract getChild(index: number | string): Promise<this>;
     
@@ -374,6 +372,9 @@ export abstract class BaseNode<T> implements INode<T> {
         return !this.isRoot ? (this.keys.length < this.m -1) : this.keys.length < 1;
     }
     
+    get wouldUnderflow(): boolean {
+        return (this.keys.length-1) < this.m -1
+    }
     
     protected get isRoot(): boolean {
         return !this.parent;
